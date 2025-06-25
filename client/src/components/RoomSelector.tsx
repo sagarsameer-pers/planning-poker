@@ -8,7 +8,6 @@ interface RoomSelectorProps {
 
 const RoomSelector: React.FC<RoomSelectorProps> = ({ onUserAndRoomReady }) => {
   const [userName, setUserName] = useState('');
-  const [userEmail, setUserEmail] = useState('');
   const [mode, setMode] = useState<'join' | 'create'>('join');
   const [roomId, setRoomId] = useState('');
   const [roomName, setRoomName] = useState('');
@@ -39,8 +38,11 @@ const RoomSelector: React.FC<RoomSelectorProps> = ({ onUserAndRoomReady }) => {
       const user: User = {
         id: generateUserId(),
         name: userName.trim(),
-        email: userEmail.trim() || `${userName.trim().toLowerCase().replace(/\s+/g, '')}@temp.com`
+        email: `${userName.trim().toLowerCase().replace(/\s+/g, '')}@temp.com`
       };
+
+      console.log('Attempting to join room:', roomId);
+      console.log('API URL:', `${config.API_BASE_URL}/api/rooms/${roomId}/join`);
 
       const response = await fetch(`${config.API_BASE_URL}/api/rooms/${roomId}/join`, {
         method: 'POST',
@@ -54,15 +56,21 @@ const RoomSelector: React.FC<RoomSelectorProps> = ({ onUserAndRoomReady }) => {
         }),
       });
 
-      const data = await response.json();
-
+      console.log('Join room response status:', response.status);
+      
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to join room');
+        const errorText = await response.text();
+        console.error('Join room error response:', errorText);
+        throw new Error(`Server error (${response.status}): ${errorText}`);
       }
+
+      const data = await response.json();
+      console.log('Join room success:', data);
 
       onUserAndRoomReady(user, roomId);
     } catch (err: any) {
-      setError(err.message);
+      console.error('Join room error:', err);
+      setError(`Failed to join room: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -86,8 +94,12 @@ const RoomSelector: React.FC<RoomSelectorProps> = ({ onUserAndRoomReady }) => {
       const user: User = {
         id: generateUserId(),
         name: userName.trim(),
-        email: userEmail.trim() || `${userName.trim().toLowerCase().replace(/\s+/g, '')}@temp.com`
+        email: `${userName.trim().toLowerCase().replace(/\s+/g, '')}@temp.com`
       };
+
+      console.log('Attempting to create room:', roomName);
+      console.log('API URL:', `${config.API_BASE_URL}/api/rooms`);
+      console.log('Request payload:', { userId: user.id, roomName, userName: user.name, userEmail: user.email });
 
       const response = await fetch(`${config.API_BASE_URL}/api/rooms`, {
         method: 'POST',
@@ -102,16 +114,26 @@ const RoomSelector: React.FC<RoomSelectorProps> = ({ onUserAndRoomReady }) => {
         }),
       });
 
-      const data = await response.json();
-
+      console.log('Create room response status:', response.status);
+      
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to create room');
+        const errorText = await response.text();
+        console.error('Create room error response:', errorText);
+        throw new Error(`Server error (${response.status}): ${errorText}`);
       }
+
+      const data = await response.json();
+      console.log('Create room success:', data);
 
       setCreatedRoomId(data.room.id);
       setShowRoomCreated(true);
     } catch (err: any) {
-      setError(err.message);
+      console.error('Create room error:', err);
+      if (err.name === 'TypeError' && err.message.includes('fetch')) {
+        setError(`Cannot connect to server. Please check if the backend is running at ${config.API_BASE_URL}`);
+      } else {
+        setError(`Failed to create room: ${err.message}`);
+      }
     } finally {
       setLoading(false);
     }
@@ -121,7 +143,7 @@ const RoomSelector: React.FC<RoomSelectorProps> = ({ onUserAndRoomReady }) => {
     const user: User = {
       id: generateUserId(),
       name: userName.trim(),
-      email: userEmail.trim() || `${userName.trim().toLowerCase().replace(/\s+/g, '')}@temp.com`
+      email: `${userName.trim().toLowerCase().replace(/\s+/g, '')}@temp.com`
     };
     
     setShowRoomCreated(false);
@@ -179,7 +201,7 @@ const RoomSelector: React.FC<RoomSelectorProps> = ({ onUserAndRoomReady }) => {
         <div className="card max-w-md w-full mx-4 p-6">
           <div className="text-center mb-6">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Planning Poker</h1>
-            <p className="text-gray-600">Enter your details and choose your action</p>
+            <p className="text-gray-600">Enter your name and choose your action</p>
           </div>
 
           {error && (
@@ -202,19 +224,6 @@ const RoomSelector: React.FC<RoomSelectorProps> = ({ onUserAndRoomReady }) => {
                 className="input-field"
                 placeholder="Enter your name"
                 required
-              />
-            </div>
-            <div>
-              <label htmlFor="userEmail" className="block text-sm font-medium text-gray-700 mb-1">
-                Email (optional)
-              </label>
-              <input
-                type="email"
-                id="userEmail"
-                value={userEmail}
-                onChange={(e) => setUserEmail(e.target.value)}
-                className="input-field"
-                placeholder="Enter your email"
               />
             </div>
           </div>
@@ -303,6 +312,12 @@ const RoomSelector: React.FC<RoomSelectorProps> = ({ onUserAndRoomReady }) => {
               </p>
             </form>
           )}
+
+          {/* Debug Info */}
+          <div className="mt-4 p-3 bg-gray-100 rounded-md text-xs text-gray-600">
+            <p>Backend URL: {config.API_BASE_URL}</p>
+            <p>Environment: {process.env.NODE_ENV || 'development'}</p>
+          </div>
         </div>
       </div>
     </>
