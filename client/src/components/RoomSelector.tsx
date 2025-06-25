@@ -312,12 +312,6 @@ const RoomSelector: React.FC<RoomSelectorProps> = ({ onUserAndRoomReady }) => {
               </p>
             </form>
           )}
-
-          {/* Debug Info */}
-          <div className="mt-4 p-3 bg-gray-100 rounded-md text-xs text-gray-600">
-            <p>Backend URL: {config.API_BASE_URL}</p>
-            <p>Environment: {process.env.NODE_ENV || 'development'}</p>
-          </div>
         </div>
       </div>
     </>

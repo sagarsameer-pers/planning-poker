@@ -18,6 +18,7 @@ const PlanningRoom: React.FC<PlanningRoomProps> = ({ user, roomId, socket, onLea
   const [error, setError] = useState('');
   const [userVotes, setUserVotes] = useState<Set<string>>(new Set());
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+  const [backendReady, setBackendReady] = useState(false);
 
   const loadRoomState = useCallback(async () => {
     try {
@@ -29,6 +30,7 @@ const PlanningRoom: React.FC<PlanningRoomProps> = ({ user, roomId, socket, onLea
       }
 
       setRoomState(data);
+      setBackendReady(true); // Backend is responding
       
       // Update user votes based on current vote responses
       if (data.currentVote && data.voteResponses) {
@@ -37,6 +39,7 @@ const PlanningRoom: React.FC<PlanningRoomProps> = ({ user, roomId, socket, onLea
       }
     } catch (err: any) {
       setError(err.message);
+      setBackendReady(false);
     }
   }, [roomId]);
 
@@ -144,9 +147,16 @@ const PlanningRoom: React.FC<PlanningRoomProps> = ({ user, roomId, socket, onLea
   if (!roomState) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading room...</p>
+        <div className="text-center max-w-md mx-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent mx-auto mb-4"></div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Connecting to Room</h3>
+          <p className="text-gray-600 mb-4">Please wait while we establish connection...</p>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <p className="text-sm text-blue-700">
+              <strong>🕐 First time connecting?</strong><br />
+              Free hosting may take up to 2 minutes to spin up from sleep mode.
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -406,15 +416,19 @@ const PlanningRoom: React.FC<PlanningRoomProps> = ({ user, roomId, socket, onLea
                 {roomState.participants.length} participant{roomState.participants.length !== 1 ? 's' : ''}
               </p>
               
-              {/* Debug Info */}
-              <div className="text-xs text-gray-500 mb-2 p-2 bg-gray-50 rounded">
-                <p>Debug: isAdmin = {isAdmin ? 'TRUE' : 'FALSE'}</p>
-                <p>Current User ID: {user.id}</p>
-                <p>Room Admin ID: {roomState.room.admin_id}</p>
-                <p>Room Admin Name: {roomState.room.admin_name}</p>
-              </div>
+              {!backendReady && (
+                <div className="text-xs text-amber-600 mb-2 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-3 w-3 border border-amber-600 border-t-transparent"></div>
+                    <span className="font-medium">Connecting to server...</span>
+                  </div>
+                  <p className="mt-1 text-xs">
+                    🕐 Free hosting may take up to 2 minutes to spin up. Please wait while we establish connection.
+                  </p>
+                </div>
+              )}
               
-              {isAdmin && (
+              {backendReady && isAdmin && (
                 <div className="space-y-2">
                   <div className="flex gap-2">
                     <input
@@ -444,9 +458,9 @@ const PlanningRoom: React.FC<PlanningRoomProps> = ({ user, roomId, socket, onLea
                 </div>
               )}
               
-              {!isAdmin && (
-                <div className="text-xs text-red-500 p-2 bg-red-50 rounded">
-                  Admin controls not visible - you are not the admin
+              {backendReady && !isAdmin && (
+                <div className="text-xs text-gray-500 p-2 bg-gray-50 rounded">
+                  Only the room admin can start votes
                 </div>
               )}
             </div>
