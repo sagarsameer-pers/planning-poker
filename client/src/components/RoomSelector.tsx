@@ -3,11 +3,12 @@ import { User } from '../types';
 import config from '../config';
 
 interface RoomSelectorProps {
-  user: User;
-  onRoomSelected: (roomId: string) => void;
+  onUserAndRoomReady: (user: User, roomId: string) => void;
 }
 
-const RoomSelector: React.FC<RoomSelectorProps> = ({ user, onRoomSelected }) => {
+const RoomSelector: React.FC<RoomSelectorProps> = ({ onUserAndRoomReady }) => {
+  const [userName, setUserName] = useState('');
+  const [userEmail, setUserEmail] = useState('');
   const [mode, setMode] = useState<'join' | 'create'>('join');
   const [roomId, setRoomId] = useState('');
   const [roomName, setRoomName] = useState('');
@@ -16,8 +17,16 @@ const RoomSelector: React.FC<RoomSelectorProps> = ({ user, onRoomSelected }) => 
   const [showRoomCreated, setShowRoomCreated] = useState(false);
   const [createdRoomId, setCreatedRoomId] = useState('');
 
+  const generateUserId = () => {
+    return Date.now().toString() + Math.random().toString(36).substr(2, 9);
+  };
+
   const handleJoinRoom = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!userName.trim()) {
+      setError('Name is required');
+      return;
+    }
     if (!roomId) {
       setError('Room ID is required');
       return;
@@ -27,6 +36,12 @@ const RoomSelector: React.FC<RoomSelectorProps> = ({ user, onRoomSelected }) => 
     setError('');
 
     try {
+      const user: User = {
+        id: generateUserId(),
+        name: userName.trim(),
+        email: userEmail.trim() || `${userName.trim().toLowerCase().replace(/\s+/g, '')}@temp.com`
+      };
+
       const response = await fetch(`${config.API_BASE_URL}/api/rooms/${roomId}/join`, {
         method: 'POST',
         headers: {
@@ -45,7 +60,7 @@ const RoomSelector: React.FC<RoomSelectorProps> = ({ user, onRoomSelected }) => 
         throw new Error(data.error || 'Failed to join room');
       }
 
-      onRoomSelected(roomId);
+      onUserAndRoomReady(user, roomId);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -55,6 +70,10 @@ const RoomSelector: React.FC<RoomSelectorProps> = ({ user, onRoomSelected }) => 
 
   const handleCreateRoom = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!userName.trim()) {
+      setError('Name is required');
+      return;
+    }
     if (!roomName) {
       setError('Room name is required');
       return;
@@ -64,6 +83,12 @@ const RoomSelector: React.FC<RoomSelectorProps> = ({ user, onRoomSelected }) => 
     setError('');
 
     try {
+      const user: User = {
+        id: generateUserId(),
+        name: userName.trim(),
+        email: userEmail.trim() || `${userName.trim().toLowerCase().replace(/\s+/g, '')}@temp.com`
+      };
+
       const response = await fetch(`${config.API_BASE_URL}/api/rooms`, {
         method: 'POST',
         headers: {
@@ -90,6 +115,17 @@ const RoomSelector: React.FC<RoomSelectorProps> = ({ user, onRoomSelected }) => 
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleEnterCreatedRoom = () => {
+    const user: User = {
+      id: generateUserId(),
+      name: userName.trim(),
+      email: userEmail.trim() || `${userName.trim().toLowerCase().replace(/\s+/g, '')}@temp.com`
+    };
+    
+    setShowRoomCreated(false);
+    onUserAndRoomReady(user, createdRoomId);
   };
 
   return (
@@ -129,10 +165,7 @@ const RoomSelector: React.FC<RoomSelectorProps> = ({ user, onRoomSelected }) => 
                 📋 Copy Code
               </button>
               <button
-                onClick={() => {
-                  setShowRoomCreated(false);
-                  onRoomSelected(createdRoomId);
-                }}
+                onClick={handleEnterCreatedRoom}
                 className="flex-1 btn-primary"
               >
                 Enter Room
@@ -145,12 +178,51 @@ const RoomSelector: React.FC<RoomSelectorProps> = ({ user, onRoomSelected }) => 
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="card max-w-md w-full mx-4 p-6">
           <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome, {user.name}!</h2>
-            <p className="text-gray-600">Join an existing room or create a new one</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Planning Poker</h1>
+            <p className="text-gray-600">Enter your details and choose your action</p>
           </div>
 
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-4">
+              {error}
+            </div>
+          )}
+
+          {/* User Details Section */}
+          <div className="space-y-4 mb-6 pb-6 border-b border-gray-200">
+            <div>
+              <label htmlFor="userName" className="block text-sm font-medium text-gray-700 mb-1">
+                Your Name *
+              </label>
+              <input
+                type="text"
+                id="userName"
+                value={userName}
+                onChange={(e) => setUserName(e.target.value)}
+                className="input-field"
+                placeholder="Enter your name"
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="userEmail" className="block text-sm font-medium text-gray-700 mb-1">
+                Email (optional)
+              </label>
+              <input
+                type="email"
+                id="userEmail"
+                value={userEmail}
+                onChange={(e) => setUserEmail(e.target.value)}
+                className="input-field"
+                placeholder="Enter your email"
+              />
+            </div>
+          </div>
+
+          {/* Room Action Selection */}
           <div className="flex rounded-lg bg-gray-100 p-1 mb-6">
             <button
+              type="button"
               onClick={() => setMode('join')}
               className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
                 mode === 'join'
@@ -161,6 +233,7 @@ const RoomSelector: React.FC<RoomSelectorProps> = ({ user, onRoomSelected }) => 
               Join Room
             </button>
             <button
+              type="button"
               onClick={() => setMode('create')}
               className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
                 mode === 'create'
@@ -172,12 +245,7 @@ const RoomSelector: React.FC<RoomSelectorProps> = ({ user, onRoomSelected }) => 
             </button>
           </div>
 
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-4">
-              {error}
-            </div>
-          )}
-
+          {/* Room Action Forms */}
           {mode === 'join' ? (
             <form onSubmit={handleJoinRoom} className="space-y-4">
               <div>
@@ -201,7 +269,7 @@ const RoomSelector: React.FC<RoomSelectorProps> = ({ user, onRoomSelected }) => 
               </div>
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || !userName.trim()}
                 className="btn-primary w-full"
               >
                 {loading ? 'Joining...' : 'Join Room'}
@@ -225,7 +293,7 @@ const RoomSelector: React.FC<RoomSelectorProps> = ({ user, onRoomSelected }) => 
               </div>
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || !userName.trim()}
                 className="btn-primary w-full"
               >
                 {loading ? 'Creating...' : 'Create Room'}
@@ -235,12 +303,6 @@ const RoomSelector: React.FC<RoomSelectorProps> = ({ user, onRoomSelected }) => 
               </p>
             </form>
           )}
-
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <p className="text-xs text-gray-500 text-center">
-              Logged in as {user.email}
-            </p>
-          </div>
         </div>
       </div>
     </>
