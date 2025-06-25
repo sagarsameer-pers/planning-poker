@@ -356,16 +356,24 @@ const PlanningRoom: React.FC<PlanningRoomProps> = ({ user, roomId, socket, onLea
                     <div className="text-xs font-medium text-gray-700 truncate max-w-20">
                       {participant.name}
                     </div>
+                    {/* Admin indicator below name */}
+                    {isAdmin && (
+                      <div className="text-xs text-purple-600 font-semibold mt-1">
+                        Admin
+                      </div>
+                    )}
                   </div>
                   
-                  {/* Admin Controls */}
+                  {/* Enhanced Admin Controls */}
                   {isAdmin && participant.id !== user.id && participant.id !== roomState.room.admin_id && (
-                    <button
-                      onClick={() => handleSetAdmin(participant.id)}
-                      className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700"
-                    >
-                      Make Admin
-                    </button>
+                    <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2">
+                      <button
+                        onClick={() => handleSetAdmin(participant.id)}
+                        className="text-xs bg-purple-600 text-white px-3 py-1 rounded-full hover:bg-purple-700 shadow-md transition-colors whitespace-nowrap"
+                      >
+                        👑 Make Admin
+                      </button>
+                    </div>
                   )}
                 </div>
               );
@@ -379,7 +387,19 @@ const PlanningRoom: React.FC<PlanningRoomProps> = ({ user, roomId, socket, onLea
             <div>
               <h1 className="text-2xl font-bold text-gray-900 mb-2">{roomState.room.name}</h1>
               <p className="text-sm text-gray-600">Room Code: <span className="font-mono font-bold text-lg">{roomId}</span></p>
-              <p className="text-sm text-gray-600">Admin: {roomState.room.admin_name}</p>
+              <div className="flex items-center gap-2">
+                <p className="text-sm text-gray-600">Admin: {roomState.room.admin_name}</p>
+                {isAdmin && (
+                  <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full font-semibold">
+                    👑 You are admin
+                  </span>
+                )}
+              </div>
+              {isAdmin && (
+                <p className="text-xs text-purple-600 mt-2">
+                  💡 Click "👑 Make Admin" below any participant to transfer admin rights
+                </p>
+              )}
             </div>
             <div className="text-right">
               <p className="text-sm text-gray-600 mb-2">
