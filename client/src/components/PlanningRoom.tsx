@@ -172,22 +172,6 @@ const PlanningRoom: React.FC<PlanningRoomProps> = ({ user, roomId, socket, onLea
         </div>
       </div>
 
-      {/* Loading/Spinup Message */}
-      <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mx-4 mt-4">
-        <div className="flex">
-          <div className="flex-shrink-0">
-            <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-            </svg>
-          </div>
-          <div className="ml-3">
-            <p className="text-sm text-yellow-700">
-              <strong>Running on free hosting:</strong> If the system seems slow to respond, it may be spinning up from sleep mode. This can take 1-2 minutes initially.
-            </p>
-          </div>
-        </div>
-      </div>
-
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 mx-4 mt-4 rounded-md">
           {error}
@@ -203,7 +187,7 @@ const PlanningRoom: React.FC<PlanningRoomProps> = ({ user, roomId, socket, onLea
       {/* Leave Room Confirmation Modal */}
       {showLeaveConfirm && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
             <div className="text-center">
               <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
                 <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -434,72 +418,81 @@ const PlanningRoom: React.FC<PlanningRoomProps> = ({ user, roomId, socket, onLea
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Admin Controls */}
-          <div className="card p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Admin Controls</h2>
-          </div>
-
-          {/* Voting Area */}
-          <div className="lg:col-span-2">
-            {currentVote ? (
-              <div className="card p-6">
-                <div className="text-center mb-6">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-2">{currentVote.name}</h2>
-                  <p className="text-gray-600">
-                    {isVoteRevealed ? 'Votes revealed!' : hasVoted ? 'Waiting for others...' : 'Select your estimate'}
-                  </p>
-                </div>
-
-                {!isVoteRevealed && (
-                  <div className="grid grid-cols-6 gap-3 mb-6">
-                    {POKER_VALUES.map((value) => (
-                      <button
-                        key={value}
-                        onClick={() => handleSubmitVote(value)}
-                        className={`poker-card ${selectedValue === value ? 'selected' : ''}`}
-                        disabled={hasVoted}
-                      >
-                        {value}
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {isVoteRevealed && (
-                  <div className="mt-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Results</h3>
-                    <div className="grid grid-cols-2 gap-4">
-                      {roomState.participants.map((participant) => {
-                        const voteResponse = roomState.voteResponses.find(r => r.user_id === participant.id);
-                        return (
-                          <div key={participant.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                            <span className="font-medium text-gray-900">{participant.name}</span>
-                            <div className={`poker-card !w-12 !h-16 !text-base ${
-                              voteResponse ? 'bg-white text-gray-900' : 'bg-red-100 text-red-600'
-                            }`}>
-                              {voteResponse ? voteResponse.value : 'Not Voted'}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="card p-12 text-center">
-                <div className="text-gray-400 mb-4">
-                  <svg className="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 01-1.414 1.414L5 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12zm-9 7a1 1 0 012 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 010 2H4a1 1 0 01-1-1v-4zm13-1a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 010-2h1.586l-2.293-2.293a1 1 0 111.414-1.414L15 13.586V12a1 1 0 011-1z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No active voting session</h3>
+        {/* Voting Area */}
+        <div className="w-full">
+          {currentVote ? (
+            <div className="card p-6">
+              <div className="text-center mb-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-2">{currentVote.name}</h2>
                 <p className="text-gray-600">
-                  {isAdmin ? 'Start a new vote to begin estimation' : 'Waiting for admin to start a vote'}
+                  {isVoteRevealed ? 'Votes revealed!' : hasVoted ? 'Waiting for others...' : 'Select your estimate'}
                 </p>
               </div>
-            )}
+
+              {!isVoteRevealed && (
+                <div className="grid grid-cols-6 gap-3 mb-6">
+                  {POKER_VALUES.map((value) => (
+                    <button
+                      key={value}
+                      onClick={() => handleSubmitVote(value)}
+                      className={`poker-card ${selectedValue === value ? 'selected' : ''}`}
+                      disabled={hasVoted}
+                    >
+                      {value}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {isVoteRevealed && (
+                <div className="mt-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Results</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    {roomState.participants.map((participant) => {
+                      const voteResponse = roomState.voteResponses.find(r => r.user_id === participant.id);
+                      return (
+                        <div key={participant.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                          <span className="font-medium text-gray-900">{participant.name}</span>
+                          <div className={`poker-card !w-12 !h-16 !text-base ${
+                            voteResponse ? 'bg-white text-gray-900' : 'bg-red-100 text-red-600'
+                          }`}>
+                            {voteResponse ? voteResponse.value : 'Not Voted'}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="card p-12 text-center">
+              <div className="text-gray-400 mb-4">
+                <svg className="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 01-1.414 1.414L5 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12zm-9 7a1 1 0 012 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 010 2H4a1 1 0 01-1-1v-4zm13-1a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 010-2h1.586l-2.293-2.293a1 1 0 111.414-1.414L15 13.586V12a1 1 0 011-1z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No active voting session</h3>
+              <p className="text-gray-600">
+                {isAdmin ? 'Use the form above to start a new vote' : 'Waiting for admin to start a vote'}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Hosting Message at Bottom */}
+        <div className="mt-8 bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-blue-700">
+                <strong>Running on free hosting:</strong> If the system seems slow to respond, it may be spinning up from sleep mode. This can take 1-2 minutes initially.
+              </p>
+            </div>
           </div>
         </div>
       </div>

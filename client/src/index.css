@@ -39,7 +39,7 @@
   }
 
   .poker-card {
-    @apply w-16 h-24 rounded-lg border-2 border-gray-300 flex items-center justify-center font-bold text-lg cursor-pointer transition-all duration-200 hover:shadow-md;
+    @apply w-8 h-12 rounded-md border border-gray-300 flex items-center justify-center font-bold text-sm cursor-pointer transition-all duration-200 hover:shadow-md;
   }
 
   .poker-card.selected {
