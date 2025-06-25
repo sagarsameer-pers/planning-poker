@@ -6,7 +6,11 @@ export const useSocket = () => {
 
   useEffect(() => {
     // Initialize socket connection
-    socketRef.current = io('http://localhost:3001');
+    const serverUrl = process.env.NODE_ENV === 'production' 
+      ? 'https://planning-poker-2mjf.onrender.com' 
+      : 'http://localhost:3001';
+    
+    socketRef.current = io(serverUrl);
 
     return () => {
       if (socketRef.current) {
