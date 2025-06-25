@@ -6,7 +6,10 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "build": "echo 'Build completed successfully - no build step required for Node.js server'"
+    "build": "echo 'Build completed - Node.js server ready for deployment'"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   },
   "dependencies": {
     "@sendgrid/mail": "^8.1.5",
