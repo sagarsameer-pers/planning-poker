@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { User } from '../types';
+import config from '../config';
 
 interface RoomSelectorProps {
   user: User;
@@ -26,7 +27,7 @@ const RoomSelector: React.FC<RoomSelectorProps> = ({ user, onRoomSelected }) => 
     setError('');
 
     try {
-      const response = await fetch(`/api/rooms/${roomId}/join`, {
+      const response = await fetch(`${config.API_BASE_URL}/api/rooms/${roomId}/join`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -59,7 +60,7 @@ const RoomSelector: React.FC<RoomSelectorProps> = ({ user, onRoomSelected }) => 
     setError('');
 
     try {
-      const response = await fetch('/api/rooms', {
+      const response = await fetch(`${config.API_BASE_URL}/api/rooms`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

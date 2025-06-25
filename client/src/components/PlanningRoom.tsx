@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Socket } from 'socket.io-client';
 import { User, RoomState, POKER_VALUES } from '../types';
+import config from '../config';
 
 interface PlanningRoomProps {
   user: User;
@@ -20,7 +21,7 @@ const PlanningRoom: React.FC<PlanningRoomProps> = ({ user, roomId, socket }) => 
 
   const loadRoomState = useCallback(async () => {
     try {
-      const response = await fetch(`/api/rooms/${roomId}`);
+      const response = await fetch(`${config.API_BASE_URL}/api/rooms/${roomId}`);
       const data = await response.json();
 
       if (!response.ok) {
@@ -131,7 +132,7 @@ const PlanningRoom: React.FC<PlanningRoomProps> = ({ user, roomId, socket }) => 
     if (!roomState?.room || roomState.room.admin_id !== user.id) return;
     
     try {
-      const response = await fetch(`/api/rooms/${roomId}/pending-otps?adminId=${user.id}`);
+      const response = await fetch(`${config.API_BASE_URL}/api/rooms/${roomId}/pending-otps?adminId=${user.id}`);
       const data = await response.json();
       
       if (response.ok) {

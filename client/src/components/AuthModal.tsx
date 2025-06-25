@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User } from '../types';
+import config from '../config';
 
 interface AuthModalProps {
   onAuthenticated: (user: User) => void;
@@ -48,7 +49,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onAuthenticated }) => {
     setError('');
 
     try {
-      const response = await fetch('/api/send-otp', {
+      const response = await fetch(`${config.API_BASE_URL}/api/send-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -85,7 +86,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onAuthenticated }) => {
     setError('');
 
     try {
-      const response = await fetch('/api/verify-otp', {
+      const response = await fetch(`${config.API_BASE_URL}/api/verify-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
