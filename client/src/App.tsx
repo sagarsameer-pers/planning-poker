@@ -10,7 +10,7 @@ const App: React.FC = () => {
   const [currentRoom, setCurrentRoom] = useState<string | null>(null);
   const socket = useSocket();
 
-  const handleAuthenticated = (authenticatedUser: User) => {
+  const handleAuth = (authenticatedUser: User) => {
     setUser(authenticatedUser);
   };
 
@@ -23,7 +23,7 @@ const App: React.FC = () => {
   };
 
   if (!user) {
-    return <AuthModal onAuthenticated={handleAuthenticated} />;
+    return <AuthModal onAuth={handleAuth} />;
   }
 
   if (!currentRoom) {
@@ -31,20 +31,13 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="relative">
+    <div className="relative min-h-screen">
       <PlanningRoom 
         user={user} 
         roomId={currentRoom} 
         socket={socket}
+        onLeaveRoom={handleLeaveRoom}
       />
-      
-      {/* Leave Room Button */}
-      <button
-        onClick={handleLeaveRoom}
-        className="fixed top-4 right-4 btn-secondary text-sm z-10"
-      >
-        Leave Room
-      </button>
     </div>
   );
 };

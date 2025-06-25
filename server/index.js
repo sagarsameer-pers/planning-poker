@@ -3,7 +3,7 @@ const http = require('http');
 const socketIo = require('socket.io');
 const cors = require('cors');
 const sqlite3 = require('sqlite3').verbose();
-const sgMail = require('@sendgrid/mail');
+// SendGrid removed - using simplified authentication
 const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
 require('dotenv').config();
@@ -36,13 +36,7 @@ db.serialize(() => {
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
 
-  // OTP table
-  db.run(`CREATE TABLE IF NOT EXISTS otps (
-    email TEXT PRIMARY KEY,
-    otp TEXT NOT NULL,
-    expires_at DATETIME NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )`);
+  // OTP table removed - using simplified authentication
 
   // Rooms table
   db.run(`CREATE TABLE IF NOT EXISTS rooms (
@@ -90,205 +84,64 @@ db.serialize(() => {
   )`);
 });
 
-// SendGrid setup
-if (process.env.SENDGRID_API_KEY) {
-  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-      console.log('SendGrid configured for email sending');
-    console.log(`📧 From Email: ${process.env.FROM_EMAIL}`);
-    console.log('⚠️  IMPORTANT: Ensure your sender email is verified in SendGrid dashboard');
-  } else {
-    console.log('SendGrid not configured - using console logging for OTP');
-  }
+// SendGrid removed - using simplified authentication without email verification
 
 // Helper functions
-function generateOTP() {
-  return Math.floor(100 + Math.random() * 900).toString();
-}
+// OTP functionality removed - using simplified authentication
 
 function generateRoomCode() {
   // Generate 3-digit room code (100-999)
   return Math.floor(100 + Math.random() * 900).toString();
 }
 
-async function sendOTP(email, otp) {
-  if (process.env.SENDGRID_API_KEY && process.env.FROM_EMAIL) {
-    try {
-      console.log('=== SendGrid Debug Info ===');
-      console.log('API Key configured:', process.env.SENDGRID_API_KEY ? 'Yes' : 'No');
-      console.log('From Email:', process.env.FROM_EMAIL);
-      console.log('To Email:', email);
-      console.log('===========================');
-
-      const msg = {
-        to: email,
-        from: process.env.FROM_EMAIL, // Use the email address you verified with SendGrid
-        subject: 'Planning Poker - OTP Verification',
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #2563eb; margin-bottom: 10px;">🃏 Planning Poker</h1>
-              <h2 style="color: #374151; margin-bottom: 20px;">Email Verification</h2>
-            </div>
-            
-            <div style="background-color: #f8fafc; padding: 30px; border-radius: 8px; text-align: center; margin-bottom: 20px;">
-              <p style="color: #6b7280; margin-bottom: 15px; font-size: 16px;">Your verification code is:</p>
-              <div style="background-color: #ffffff; padding: 20px; border-radius: 6px; border: 2px solid #e5e7eb;">
-                <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #1f2937; font-family: monospace;">
-                  ${otp}
-                </span>
-              </div>
-            </div>
-            
-            <div style="text-align: center; color: #6b7280; font-size: 14px;">
-              <p>This code will expire in 2 minutes.</p>
-              <p style="margin-top: 20px;">If you didn't request this code, please ignore this email.</p>
-            </div>
-          </div>
-        `,
-      };
-
-      await sgMail.send(msg);
-      console.log(`✅ Email sent successfully to ${email}`);
-    } catch (error) {
-      console.error('❌ SendGrid email sending failed:', error.message);
-      if (error.response && error.response.body) {
-        console.error('SendGrid error details:', JSON.stringify(error.response.body, null, 2));
-      }
-      // Fallback to console logging for debugging (don't throw error)
-      console.log(`=== OTP CODE (SendGrid failed) ===`);
-      console.log(`Email: ${email}`);
-      console.log(`OTP: ${otp}`);
-      console.log(`==================================`);
-      // Don't throw error - allow the process to continue with console logging
-    }
-  } else {
-    // Fallback to console logging
-    console.log(`=== OTP CODE ===`);
-    console.log(`Email: ${email}`);
-    console.log(`OTP: ${otp}`);
-    console.log(`================`);
-  }
-}
-
 // API Routes
-
-// Send OTP
-app.post('/api/send-otp', async (req, res) => {
-  const { email } = req.body;
-  
-  if (!email) {
-    return res.status(400).json({ error: 'Email is required' });
-  }
-
-  const otp = generateOTP();
-  const expiresAt = new Date(Date.now() + 2 * 60 * 1000); // 2 minutes
-
-  try {
-    // Store OTP in database
-    await new Promise((resolve, reject) => {
-      db.run(
-        'INSERT OR REPLACE INTO otps (email, otp, expires_at) VALUES (?, ?, ?)',
-        [email, otp, expiresAt.toISOString()],
-        function(err) {
-          if (err) {
-            console.error('Database error:', err);
-            reject(err);
-          } else {
-            resolve();
-          }
-        }
-      );
-    });
-
-    // Send OTP via email (this now handles errors gracefully)
-    await sendOTP(email, otp);
-    
-    res.json({ message: 'OTP sent successfully' });
-  } catch (error) {
-    console.error('Error in send-otp endpoint:', error);
-    res.status(500).json({ error: 'Failed to send OTP' });
-  }
-});
-
-// Verify OTP and authenticate
-app.post('/api/verify-otp', (req, res) => {
-  const { email, otp, name } = req.body;
-  
-  if (!email || !otp || !name) {
-    return res.status(400).json({ error: 'Email, OTP, and name are required' });
-  }
-
-  // Check OTP
-  db.get(
-    'SELECT * FROM otps WHERE email = ? AND otp = ? AND expires_at > datetime("now")',
-    [email, otp],
-    (err, row) => {
-      if (err) {
-        console.error('Database error:', err);
-        return res.status(500).json({ error: 'Database error' });
-      }
-
-      if (!row) {
-        return res.status(400).json({ error: 'Invalid or expired OTP' });
-      }
-
-      // Create or update user
-      const userId = uuidv4();
-      db.run(
-        'INSERT OR REPLACE INTO users (id, email, name) VALUES (?, ?, ?)',
-        [userId, email, name],
-        function(err) {
-          if (err) {
-            console.error('Database error:', err);
-            return res.status(500).json({ error: 'Database error' });
-          }
-
-          // Delete used OTP
-          db.run('DELETE FROM otps WHERE email = ?', [email]);
-
-          res.json({
-            message: 'Authentication successful',
-            user: { id: userId, email, name }
-          });
-        }
-      );
-    }
-  );
-});
 
 // Create room
 app.post('/api/rooms', (req, res) => {
-  const { userId, roomName } = req.body;
+  const { userId, roomName, userName, userEmail } = req.body;
   
-  if (!userId || !roomName) {
-    return res.status(400).json({ error: 'User ID and room name are required' });
+  if (!userId || !roomName || !userName || !userEmail) {
+    return res.status(400).json({ error: 'User ID, room name, user name, and email are required' });
   }
 
   const roomId = generateRoomCode();
   
+  // First, ensure user exists in database
   db.run(
-    'INSERT INTO rooms (id, name, creator_id, admin_id) VALUES (?, ?, ?, ?)',
-    [roomId, roomName, userId, userId],
+    'INSERT OR REPLACE INTO users (id, email, name) VALUES (?, ?, ?)',
+    [userId, userEmail, userName],
     function(err) {
       if (err) {
         console.error('Database error:', err);
         return res.status(500).json({ error: 'Database error' });
       }
 
-      // Add creator as participant
+      // Then create room
       db.run(
-        'INSERT INTO room_participants (room_id, user_id) VALUES (?, ?)',
-        [roomId, userId],
-        (err) => {
+        'INSERT INTO rooms (id, name, creator_id, admin_id) VALUES (?, ?, ?, ?)',
+        [roomId, roomName, userId, userId],
+        function(err) {
           if (err) {
             console.error('Database error:', err);
             return res.status(500).json({ error: 'Database error' });
           }
 
-          res.json({
-            message: 'Room created successfully',
-            room: { id: roomId, name: roomName, adminId: userId }
-          });
+          // Add creator as participant
+          db.run(
+            'INSERT INTO room_participants (room_id, user_id) VALUES (?, ?)',
+            [roomId, userId],
+            (err) => {
+              if (err) {
+                console.error('Database error:', err);
+                return res.status(500).json({ error: 'Database error' });
+              }
+
+              res.json({
+                message: 'Room created successfully',
+                room: { id: roomId, name: roomName, adminId: userId }
+              });
+            }
+          );
         }
       );
     }
@@ -298,37 +151,49 @@ app.post('/api/rooms', (req, res) => {
 // Join room
 app.post('/api/rooms/:roomId/join', (req, res) => {
   const { roomId } = req.params;
-  const { userId } = req.body;
+  const { userId, userName, userEmail } = req.body;
   
-  if (!userId) {
-    return res.status(400).json({ error: 'User ID is required' });
+  if (!userId || !userName || !userEmail) {
+    return res.status(400).json({ error: 'User ID, name, and email are required' });
   }
 
-  // Check if room exists
-  db.get('SELECT * FROM rooms WHERE id = ?', [roomId], (err, room) => {
-    if (err) {
-      console.error('Database error:', err);
-      return res.status(500).json({ error: 'Database error' });
-    }
+  // First, ensure user exists in database
+  db.run(
+    'INSERT OR REPLACE INTO users (id, email, name) VALUES (?, ?, ?)',
+    [userId, userEmail, userName],
+    function(err) {
+      if (err) {
+        console.error('Database error:', err);
+        return res.status(500).json({ error: 'Database error' });
+      }
 
-    if (!room) {
-      return res.status(404).json({ error: 'Room not found' });
-    }
-
-    // Add user to room
-    db.run(
-      'INSERT OR IGNORE INTO room_participants (room_id, user_id) VALUES (?, ?)',
-      [roomId, userId],
-      function(err) {
+      // Check if room exists
+      db.get('SELECT * FROM rooms WHERE id = ?', [roomId], (err, room) => {
         if (err) {
           console.error('Database error:', err);
           return res.status(500).json({ error: 'Database error' });
         }
 
-        res.json({ message: 'Joined room successfully', room });
-      }
-    );
-  });
+        if (!room) {
+          return res.status(404).json({ error: 'Room not found' });
+        }
+
+        // Add user to room
+        db.run(
+          'INSERT OR IGNORE INTO room_participants (room_id, user_id) VALUES (?, ?)',
+          [roomId, userId],
+          function(err) {
+            if (err) {
+              console.error('Database error:', err);
+              return res.status(500).json({ error: 'Database error' });
+            }
+
+            res.json({ message: 'Joined room successfully', room });
+          }
+        );
+      });
+    }
+  );
 });
 
 // Get room details
@@ -411,43 +276,7 @@ app.get('/api/rooms/:roomId', (req, res) => {
   });
 });
 
-// Get pending OTPs for room admins
-app.get('/api/rooms/:roomId/pending-otps', (req, res) => {
-  const { roomId } = req.params;
-  const { adminId } = req.query;
-  
-  if (!adminId) {
-    return res.status(400).json({ error: 'Admin ID required' });
-  }
-  
-  // Check if user is admin of this room
-  db.get('SELECT * FROM rooms WHERE id = ? AND admin_id = ?', [roomId, adminId], (err, room) => {
-    if (err) {
-      console.error('Database error:', err);
-      return res.status(500).json({ error: 'Database error' });
-    }
-    
-    if (!room) {
-      return res.status(403).json({ error: 'Access denied - Admin only' });
-    }
-    
-    // Get active OTPs (not expired) - last 20 entries
-    db.all(`
-      SELECT email, otp, expires_at, created_at
-      FROM otps 
-      WHERE expires_at > datetime('now')
-      ORDER BY created_at DESC
-      LIMIT 20
-    `, (err, otps) => {
-      if (err) {
-        console.error('Database error:', err);
-        return res.status(500).json({ error: 'Database error' });
-      }
-      
-      res.json({ otps });
-    });
-  });
-});
+// OTP endpoints removed - using simplified authentication
 
 // Socket.io connections
 const activeUsers = new Map(); // socketId -> { userId, roomId, user }

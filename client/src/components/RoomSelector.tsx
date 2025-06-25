@@ -32,7 +32,11 @@ const RoomSelector: React.FC<RoomSelectorProps> = ({ user, onRoomSelected }) => 
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ userId: user.id }),
+        body: JSON.stringify({ 
+          userId: user.id, 
+          userName: user.name, 
+          userEmail: user.email 
+        }),
       });
 
       const data = await response.json();
@@ -65,7 +69,12 @@ const RoomSelector: React.FC<RoomSelectorProps> = ({ user, onRoomSelected }) => 
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ userId: user.id, roomName }),
+        body: JSON.stringify({ 
+          userId: user.id, 
+          roomName, 
+          userName: user.name, 
+          userEmail: user.email 
+        }),
       });
 
       const data = await response.json();
