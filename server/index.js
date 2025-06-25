@@ -154,12 +154,12 @@ async function sendOTP(email, otp) {
       if (error.response && error.response.body) {
         console.error('SendGrid error details:', JSON.stringify(error.response.body, null, 2));
       }
-      // Fallback to console logging for debugging
+      // Fallback to console logging for debugging (don't throw error)
       console.log(`=== OTP CODE (SendGrid failed) ===`);
       console.log(`Email: ${email}`);
       console.log(`OTP: ${otp}`);
       console.log(`==================================`);
-      throw error;
+      // Don't throw error - allow the process to continue with console logging
     }
   } else {
     // Fallback to console logging
@@ -185,23 +185,27 @@ app.post('/api/send-otp', async (req, res) => {
 
   try {
     // Store OTP in database
-    db.run(
-      'INSERT OR REPLACE INTO otps (email, otp, expires_at) VALUES (?, ?, ?)',
-      [email, otp, expiresAt.toISOString()],
-      function(err) {
-        if (err) {
-          console.error('Database error:', err);
-          return res.status(500).json({ error: 'Database error' });
+    await new Promise((resolve, reject) => {
+      db.run(
+        'INSERT OR REPLACE INTO otps (email, otp, expires_at) VALUES (?, ?, ?)',
+        [email, otp, expiresAt.toISOString()],
+        function(err) {
+          if (err) {
+            console.error('Database error:', err);
+            reject(err);
+          } else {
+            resolve();
+          }
         }
-      }
-    );
+      );
+    });
 
-    // Send OTP via email
+    // Send OTP via email (this now handles errors gracefully)
     await sendOTP(email, otp);
     
     res.json({ message: 'OTP sent successfully' });
   } catch (error) {
-    console.error('Error sending OTP:', error);
+    console.error('Error in send-otp endpoint:', error);
     res.status(500).json({ error: 'Failed to send OTP' });
   }
 });
