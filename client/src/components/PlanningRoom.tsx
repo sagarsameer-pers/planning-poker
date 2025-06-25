@@ -280,7 +280,7 @@ const PlanningRoom: React.FC<PlanningRoomProps> = ({ user, roomId, socket, onLea
           <div className="flex flex-wrap justify-center gap-4">
             {roomState.participants.map((participant, index) => {
               const isCurrentUser = participant.id === user.id;
-              const isAdmin = participant.id === roomState.room.admin_id;
+              const isParticipantAdmin = participant.id === roomState.room.admin_id;
               const hasVoted = userVotes.has(participant.id);
               
               // Get vote result if revealed
@@ -296,52 +296,52 @@ const PlanningRoom: React.FC<PlanningRoomProps> = ({ user, roomId, socket, onLea
               
               return (
                 <div key={participant.id} className={`relative ${isCurrentUser ? 'scale-110' : ''}`}>
-                  {/* Playing Card Design */}
-                  <div className={`w-20 h-28 bg-white rounded-lg border-2 shadow-lg flex flex-col items-center justify-center relative transition-transform hover:scale-105 ${
-                    isCurrentUser ? 'border-blue-500 ring-2 ring-blue-300' :
-                    isAdmin ? 'border-purple-500' :
+                  {/* Playing Card Design - Shrunk by 80% */}
+                  <div className={`w-4 h-6 bg-white rounded border shadow-sm flex flex-col items-center justify-center relative transition-transform hover:scale-105 ${
+                    isCurrentUser ? 'border-blue-500 ring-1 ring-blue-300' :
+                    isParticipantAdmin ? 'border-purple-500' :
                     'border-gray-300'
                   }`}>
                     {/* Initials */}
-                    <div className={`text-2xl font-bold ${
+                    <div className={`text-xs font-bold ${
                       isCurrentUser ? 'text-blue-600' :
-                      isAdmin ? 'text-purple-600' :
+                      isParticipantAdmin ? 'text-purple-600' :
                       'text-gray-700'
                     }`}>
                       {initials}
                     </div>
                     
                     {/* Admin Crown */}
-                    {isAdmin && (
-                      <div className="absolute top-1 right-1 text-yellow-500 text-xs">
+                    {isParticipantAdmin && (
+                      <div className="absolute -top-1 -right-1 text-yellow-500 text-xs">
                         👑
                       </div>
                     )}
                     
                     {/* "You" indicator */}
                     {isCurrentUser && (
-                      <div className="absolute top-1 left-1 text-blue-500 text-xs font-bold">
-                        YOU
+                      <div className="absolute -top-1 -left-1 text-blue-500 text-xs font-bold">
+                        U
                       </div>
                     )}
                     
                     {/* Vote Status Indicator */}
                     {currentVote && (
-                      <div className="absolute -top-2 -right-2">
+                      <div className="absolute -top-1 -right-1">
                         {isVoteRevealed ? (
                           // Show actual vote or "not voted"
-                          <div className={`w-6 h-8 rounded text-xs flex items-center justify-center font-bold ${
+                          <div className={`w-3 h-4 rounded text-xs flex items-center justify-center font-bold ${
                             voteResult ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
                           }`}>
                             {voteResult || 'X'}
                           </div>
                         ) : (
                           // Show voting status
-                          <div className={`w-6 h-6 rounded-full border-2 border-white ${
+                          <div className={`w-3 h-3 rounded-full border border-white ${
                             hasVoted ? 'bg-green-500' : 'bg-gray-400'
                           }`}>
                             {hasVoted && (
-                              <svg className="w-3 h-3 text-white m-auto mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                              <svg className="w-2 h-2 text-white m-auto" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                               </svg>
                             )}
@@ -352,13 +352,13 @@ const PlanningRoom: React.FC<PlanningRoomProps> = ({ user, roomId, socket, onLea
                   </div>
                   
                   {/* Name below card */}
-                  <div className="text-center mt-2">
-                    <div className="text-xs font-medium text-gray-700 truncate max-w-20">
+                  <div className="text-center mt-1">
+                    <div className="text-xs font-medium text-gray-700 truncate max-w-16">
                       {participant.name}
                     </div>
                     {/* Admin indicator below name */}
-                    {isAdmin && (
-                      <div className="text-xs text-purple-600 font-semibold mt-1">
+                    {isParticipantAdmin && (
+                      <div className="text-xs text-purple-600 font-semibold">
                         Admin
                       </div>
                     )}
@@ -366,12 +366,12 @@ const PlanningRoom: React.FC<PlanningRoomProps> = ({ user, roomId, socket, onLea
                   
                   {/* Enhanced Admin Controls */}
                   {isAdmin && participant.id !== user.id && participant.id !== roomState.room.admin_id && (
-                    <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2">
+                    <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2">
                       <button
                         onClick={() => handleSetAdmin(participant.id)}
-                        className="text-xs bg-purple-600 text-white px-3 py-1 rounded-full hover:bg-purple-700 shadow-md transition-colors whitespace-nowrap"
+                        className="text-xs bg-purple-600 text-white px-2 py-1 rounded hover:bg-purple-700 shadow-sm transition-colors whitespace-nowrap"
                       >
-                        👑 Make Admin
+                        👑 Admin
                       </button>
                     </div>
                   )}
@@ -405,6 +405,15 @@ const PlanningRoom: React.FC<PlanningRoomProps> = ({ user, roomId, socket, onLea
               <p className="text-sm text-gray-600 mb-2">
                 {roomState.participants.length} participant{roomState.participants.length !== 1 ? 's' : ''}
               </p>
+              
+              {/* Debug Info */}
+              <div className="text-xs text-gray-500 mb-2 p-2 bg-gray-50 rounded">
+                <p>Debug: isAdmin = {isAdmin ? 'TRUE' : 'FALSE'}</p>
+                <p>Current User ID: {user.id}</p>
+                <p>Room Admin ID: {roomState.room.admin_id}</p>
+                <p>Room Admin Name: {roomState.room.admin_name}</p>
+              </div>
+              
               {isAdmin && (
                 <div className="space-y-2">
                   <div className="flex gap-2">
@@ -432,6 +441,12 @@ const PlanningRoom: React.FC<PlanningRoomProps> = ({ user, roomId, socket, onLea
                       Reveal Votes
                     </button>
                   )}
+                </div>
+              )}
+              
+              {!isAdmin && (
+                <div className="text-xs text-red-500 p-2 bg-red-50 rounded">
+                  Admin controls not visible - you are not the admin
                 </div>
               )}
             </div>
