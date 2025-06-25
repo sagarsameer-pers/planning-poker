@@ -2,13 +2,13 @@
   "name": "planning-poker",
   "version": "1.0.0",
   "description": "A collaborative planning poker tool with email authentication",
-  "main": "server/index.js",
+  "main": "start.js",
   "scripts": {
     "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
     "server:dev": "cd server && npm run dev",
     "client:dev": "cd client && npm start",
-    "build": "cd client && npm run build",
-    "start": "cd server && npm start",
+    "build": "cd server && npm install",
+    "start": "node start.js",
     "install:all": "npm install && cd server && npm install && cd ../client && npm install"
   },
   "keywords": ["planning", "poker", "estimation", "agile", "scrum"],
