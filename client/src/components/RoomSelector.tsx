@@ -142,107 +142,107 @@ const RoomSelector: React.FC<RoomSelectorProps> = ({ user, onRoomSelected }) => 
         </div>
       )}
 
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="card max-w-md w-full mx-4 p-6">
-        <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome, {user.name}!</h2>
-          <p className="text-gray-600">Join an existing room or create a new one</p>
-        </div>
-
-        <div className="flex rounded-lg bg-gray-100 p-1 mb-6">
-          <button
-            onClick={() => setMode('join')}
-            className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-              mode === 'join'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            Join Room
-          </button>
-          <button
-            onClick={() => setMode('create')}
-            className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-              mode === 'create'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            Create Room
-          </button>
-        </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-4">
-            {error}
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="card max-w-md w-full mx-4 p-6">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome, {user.name}!</h2>
+            <p className="text-gray-600">Join an existing room or create a new one</p>
           </div>
-        )}
 
-        {mode === 'join' ? (
-          <form onSubmit={handleJoinRoom} className="space-y-4">
-            <div>
-              <label htmlFor="roomId" className="block text-sm font-medium text-gray-700 mb-1">
-                Room Code
-              </label>
-              <input
-                type="text"
-                id="roomId"
-                value={roomId}
-                onChange={(e) => setRoomId(e.target.value)}
-                className="input-field text-center text-2xl tracking-wider font-mono"
-                placeholder="000"
-                maxLength={3}
-                pattern="[0-9]{3}"
-                required
-              />
-              <p className="text-xs text-gray-500 mt-1 text-center">
-                Enter 3-digit room code
+          <div className="flex rounded-lg bg-gray-100 p-1 mb-6">
+            <button
+              onClick={() => setMode('join')}
+              className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                mode === 'join'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Join Room
+            </button>
+            <button
+              onClick={() => setMode('create')}
+              className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                mode === 'create'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Create Room
+            </button>
+          </div>
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-4">
+              {error}
+            </div>
+          )}
+
+          {mode === 'join' ? (
+            <form onSubmit={handleJoinRoom} className="space-y-4">
+              <div>
+                <label htmlFor="roomId" className="block text-sm font-medium text-gray-700 mb-1">
+                  Room Code
+                </label>
+                <input
+                  type="text"
+                  id="roomId"
+                  value={roomId}
+                  onChange={(e) => setRoomId(e.target.value)}
+                  className="input-field text-center text-2xl tracking-wider font-mono"
+                  placeholder="000"
+                  maxLength={3}
+                  pattern="[0-9]{3}"
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1 text-center">
+                  Enter 3-digit room code
+                </p>
+              </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-primary w-full"
+              >
+                {loading ? 'Joining...' : 'Join Room'}
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleCreateRoom} className="space-y-4">
+              <div>
+                <label htmlFor="roomName" className="block text-sm font-medium text-gray-700 mb-1">
+                  Room Name
+                </label>
+                <input
+                  type="text"
+                  id="roomName"
+                  value={roomName}
+                  onChange={(e) => setRoomName(e.target.value)}
+                  className="input-field"
+                  placeholder="Enter room name"
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-primary w-full"
+              >
+                {loading ? 'Creating...' : 'Create Room'}
+              </button>
+              <p className="text-xs text-gray-500 text-center">
+                A 3-digit room code will be generated automatically
               </p>
-            </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-primary w-full"
-            >
-              {loading ? 'Joining...' : 'Join Room'}
-            </button>
-          </form>
-        ) : (
-          <form onSubmit={handleCreateRoom} className="space-y-4">
-            <div>
-              <label htmlFor="roomName" className="block text-sm font-medium text-gray-700 mb-1">
-                Room Name
-              </label>
-              <input
-                type="text"
-                id="roomName"
-                value={roomName}
-                onChange={(e) => setRoomName(e.target.value)}
-                className="input-field"
-                placeholder="Enter room name"
-                required
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-primary w-full"
-            >
-              {loading ? 'Creating...' : 'Create Room'}
-            </button>
-            <p className="text-xs text-gray-500 text-center">
-              A 3-digit room code will be generated automatically
-            </p>
-          </form>
-        )}
+            </form>
+          )}
 
-        <div className="mt-6 pt-6 border-t border-gray-200">
-          <p className="text-xs text-gray-500 text-center">
-            Logged in as {user.email}
-          </p>
+          <div className="mt-6 pt-6 border-t border-gray-200">
+            <p className="text-xs text-gray-500 text-center">
+              Logged in as {user.email}
+            </p>
+          </div>
         </div>
       </div>
-    </div>
     </>
   );
 };
