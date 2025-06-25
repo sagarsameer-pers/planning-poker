@@ -3,9 +3,8 @@ services:
     name: planning-poker-backend
     runtime: node
     plan: free
-    rootDir: server
-    buildCommand: npm install
-    startCommand: npm start
+    buildCommand: npm install && cd server && npm install
+    startCommand: node start.js
     envVars:
       - key: NODE_ENV
         value: production
