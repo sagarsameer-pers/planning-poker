@@ -257,51 +257,6 @@ const PlanningRoom: React.FC<PlanningRoomProps> = ({ user, roomId, socket, onLea
       )}
 
       <div className="container mx-auto px-4 py-6">
-        {/* Header */}
-        <div className="card p-6 mb-6">
-          <div className="flex justify-between items-start">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">{roomState.room.name}</h1>
-              <p className="text-sm text-gray-600">Room Code: <span className="font-mono font-bold text-lg">{roomId}</span></p>
-              <p className="text-sm text-gray-600">Admin: {roomState.room.admin_name}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-sm text-gray-600 mb-2">
-                {roomState.participants.length} participant{roomState.participants.length !== 1 ? 's' : ''}
-              </p>
-              {isAdmin && (
-                <div className="space-y-2">
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={voteName}
-                      onChange={(e) => setVoteName(e.target.value)}
-                      placeholder="Vote name (e.g., Story #123)"
-                      className="input-field text-sm"
-                      disabled={Boolean(currentVote && !isVoteRevealed)}
-                    />
-                    <button
-                      onClick={handleStartVote}
-                      disabled={!voteName.trim() || loading || Boolean(currentVote && !isVoteRevealed)}
-                      className="btn-primary text-sm whitespace-nowrap"
-                    >
-                      Start Vote
-                    </button>
-                  </div>
-                  {currentVote && !isVoteRevealed && (
-                    <button
-                      onClick={handleRevealVotes}
-                      className="btn-success text-sm w-full"
-                    >
-                      Reveal Votes
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
         {/* Poker Table Layout */}
         <div className="mb-8">
           <div className="text-center mb-6">
@@ -415,6 +370,51 @@ const PlanningRoom: React.FC<PlanningRoomProps> = ({ user, roomId, socket, onLea
                 </div>
               );
             })}
+          </div>
+        </div>
+
+        {/* Room Details - Moved below poker table */}
+        <div className="card p-6 mb-6">
+          <div className="flex justify-between items-start">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">{roomState.room.name}</h1>
+              <p className="text-sm text-gray-600">Room Code: <span className="font-mono font-bold text-lg">{roomId}</span></p>
+              <p className="text-sm text-gray-600">Admin: {roomState.room.admin_name}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-sm text-gray-600 mb-2">
+                {roomState.participants.length} participant{roomState.participants.length !== 1 ? 's' : ''}
+              </p>
+              {isAdmin && (
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={voteName}
+                      onChange={(e) => setVoteName(e.target.value)}
+                      placeholder="Vote name (e.g., Story #123)"
+                      className="input-field text-sm"
+                      disabled={Boolean(currentVote && !isVoteRevealed)}
+                    />
+                    <button
+                      onClick={handleStartVote}
+                      disabled={!voteName.trim() || loading || Boolean(currentVote && !isVoteRevealed)}
+                      className="btn-primary text-sm whitespace-nowrap"
+                    >
+                      Start Vote
+                    </button>
+                  </div>
+                  {currentVote && !isVoteRevealed && (
+                    <button
+                      onClick={handleRevealVotes}
+                      className="btn-success text-sm w-full"
+                    >
+                      Reveal Votes
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
